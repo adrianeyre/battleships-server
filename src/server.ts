@@ -10,7 +10,7 @@ import BattleShips from './battle-ships';
 
 export default class Server implements IServer {
 	private readonly PORT: number = 4000;
-	private readonly timerInterval: number = 1000;
+	private readonly timerInterval: number = 20000;
 
 	private app: express.Application;
 	private server: HttpServer;

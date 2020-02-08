@@ -7,8 +7,8 @@
 		"build-ts": "tsc",
 		"postinstall": "npm run build-ts",
 		"start": "npm run serve",
-		"serve": "node dist/index.js",
-		"watch-node": "nodemon dist/index.js",
+		"serve": "node build/index.js",
+		"watch-node": "nodemon build/index.js",
 		"watch-ts": "tsc -w"
 	},
 	"engines": {
