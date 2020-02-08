@@ -50,6 +50,8 @@ export default class Server implements IServer {
 				console.log('Client disconnected');
 			});
 		});
+
+		this.app.get('/', (req, res) => res.send('Server Active!'))
 	}
 
 	private myTimer = () => {
