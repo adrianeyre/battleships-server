@@ -16,7 +16,12 @@ $ npm install
 $ npm start
 ```
 
-Create a file called `.env` in the root folder and add the environment variable `PORT=4000`
+- Create a file called `.env` in the root folder
+- Add the following environment variables
+```
+PORT=4000
+API_KEY=key
+```
 
 ## <a name="Play">Play Battle Ships</a>
 * [Battle Ships](http://adrianeyre.co.uk/battle-ships)

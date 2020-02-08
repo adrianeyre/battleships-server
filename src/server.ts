@@ -7,6 +7,10 @@ import IServer from './interfaces/server';
 import IMessage from './interfaces/message';
 import IBattleShips from './interfaces/battle-ships';
 import BattleShips from './battle-ships';
+import Routes from './routes';
+import IRoute from './interfaces/routes';
+import Logger from './logger';
+import ILogger from './interfaces/logger';
 
 export default class Server implements IServer {
 	private readonly PORT: number = 4000;
@@ -17,6 +21,8 @@ export default class Server implements IServer {
 	private io: SocketIO.Server;
 	private port: string | number;
 	private battleShips: IBattleShips;
+	private routes: IRoute;
+	private logger: ILogger;
 	private timer: any;
 
 	constructor() {
@@ -25,33 +31,37 @@ export default class Server implements IServer {
 		this.port = process.env.PORT || this.PORT;
 		this.server = createServer(this.app);
 		this.io = socketIo(this.server);
-		this.battleShips = new BattleShips();
+		this.logger = new Logger();
+		this.battleShips = new BattleShips({ logger: this.logger });
+		this.routes = new Routes({ app: this.app, battleShips: this.battleShips, logger: this.logger });
 		this.timer = setInterval(this.myTimer, this.timerInterval);
 
 		this.listen();
 	}
 
 	private listen(): void {
-		this.server.listen(this.port, () => {
-			console.log(`Server running on port ${ this.port }`);
-		});
-
-		this.io.on('connect', (socket: any) => {
-			console.log(`Connected client on port ${ this.port }`);
-
-			socket.on('battle-ships-data', (data: IMessage) => {
-				const socketId = socket.id;
-				const messages = this.battleShips.handle({ ...data, socketId: socketId });
-
-				messages.forEach((message: IMessage) => this.io.to(message.socketId).emit('battle-ships-data', message));
+		try {
+			this.server.listen(this.port, () => {
+				console.log(`Server running on port ${ this.port }`);
 			});
-
-			socket.on('disconnect', () => {
-				console.log('Client disconnected');
+	
+			this.io.on('connect', (socket: any) => {
+				console.log(`Connected client on port ${ this.port }`);
+	
+				socket.on('battle-ships-data', (data: IMessage) => {
+					const socketId = socket.id;
+					const messages = this.battleShips.handle({ ...data, socketId: socketId });
+	
+					messages.forEach((message: IMessage) => this.io.to(message.socketId).emit('battle-ships-data', message));
+				});
+	
+				socket.on('disconnect', () => {
+					console.log('Client disconnected');
+				});
 			});
-		});
-
-		this.app.get('/', (req, res) => res.send('Server Active!'))
+		} catch (err) {
+			this.logger.set(err.message);
+		}
 	}
 
 	private myTimer = () => {
