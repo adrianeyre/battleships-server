@@ -2,10 +2,17 @@
 	"name": "game-server",
 	"version": "0.1.0",
 	"description": "game-server",
-	"main": "src/index.ts",
+	"main": "dist/server.js",
 	"scripts": {
-		"start": "nodemon --config \"./util/nodemon.json\"/",
-		"test": "echo \"Error: no test specified\" && exit 1"
+		"build-ts": "tsc",
+		"postinstall": "npm run build-ts",
+		"start": "npm run serve",
+		"serve": "node dist/server.js",
+		"watch-node": "nodemon dist/server.js",
+		"watch-ts": "tsc -w"
+	},
+	"engines": {
+		"node": "8.11.4"
 	},
 	"repository": {
 		"type": "git",
