@@ -18,8 +18,7 @@ export default class BattleShips implements IBattleShips {
 		this.players = [];
 		this.logger = props.logger;
 
-		this.logger.set('This is a test')
-		this.logger.set('Another test')
+		this.logger.set('Application started');
 	}
 
 	public checkIn = (): IMessage[] => {
