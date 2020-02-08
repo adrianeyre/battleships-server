@@ -5,6 +5,7 @@ export default interface IPlayer {
 	setupComplete: boolean;
 	currentUser: boolean;
 	checked: boolean;
+	colour: string;
 	reset(): void;
 	hasCompletedSetup(): boolean;
 	setCurrentUser(): boolean;

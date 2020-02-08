@@ -13,6 +13,7 @@ export default class BattleShips implements IBattleShips {
 	private readonly DEFAULT_BOTH_PLAYERS_LOGGED_IN_MESSAGE = 'Both players have logged in, please set your boards'
 	private readonly DEFAULT_BOTH_PLAYERS_SETUP_COMPLETE_IN_MESSAGE = 'Both players have now setup their boards'
 	private readonly DEFAULT_GAME_OVER_MESSAGE = 'Game Ove! place your ships to play again';
+	private readonly DEFAULT_TEXT_COLOUR = '#000000';
 
 	constructor(props: IBattleShipsProps) {
 		this.players = [];
@@ -33,7 +34,7 @@ export default class BattleShips implements IBattleShips {
 				}
 
 				player.resetCheck();
-				messages.push(this.message(MessageActionEnum.CHECK, player, ''));
+				messages.push(this.message(MessageActionEnum.CHECK, player, player, '', ''));
 			})
 		})
 
@@ -76,7 +77,7 @@ export default class BattleShips implements IBattleShips {
 	public getPlayers = (): IPlayer[][] => this.players;
 
 	private logOutGroup = (playerGroup: IPlayer[], messages: IMessage[]): void => {
-		playerGroup.forEach((player: IPlayer) => messages.push(this.message(MessageActionEnum.LOGOUT, player, 'Players have disconnected!')));
+		playerGroup.forEach((player: IPlayer) => messages.push(this.message(MessageActionEnum.LOGOUT, player, player, 'Players have disconnected!', this.DEFAULT_TEXT_COLOUR)));
 	}
 
 	private login = (data: IMessage): IMessage[] => {
@@ -90,10 +91,10 @@ export default class BattleShips implements IBattleShips {
 
 		lastPlayers.push(newPlayer);
 
-		const messages: IMessage[] = [...lastPlayers].map((player: IPlayer) => this.message(MessageActionEnum.MESSAGE, player, data.message));
+		const messages: IMessage[] = [...lastPlayers].map((player: IPlayer) => this.message(MessageActionEnum.MESSAGE, newPlayer, player, data.message));
 
 		if (lastPlayers.length > 1) {
-			[...lastPlayers].forEach((player: IPlayer) => messages.push(this.message(MessageActionEnum.MESSAGE, player, this.DEFAULT_BOTH_PLAYERS_LOGGED_IN_MESSAGE)));
+			[...lastPlayers].forEach((player: IPlayer) => messages.push(this.message(MessageActionEnum.MESSAGE, player, player, this.DEFAULT_BOTH_PLAYERS_LOGGED_IN_MESSAGE, this.DEFAULT_TEXT_COLOUR)));
 		}
 
 		return messages;
@@ -119,22 +120,22 @@ export default class BattleShips implements IBattleShips {
 			return [];
 		}
 
-		const player = this.getPlayerFromGroupById(data.id, playerGroup);
+		const fromPlayer = this.getPlayerFromGroupById(data.id, playerGroup);
 
-		if (!player) {
+		if (!fromPlayer) {
 			this.logger.set('Method: setupComplete, Player not found when setup is complete');
 			return [];
 		}
 
-		player.hasCompletedSetup();
+		fromPlayer.hasCompletedSetup();
 
-		const messages: IMessage[] = [...playerGroup].map((player: IPlayer) => this.message(MessageActionEnum.MESSAGE, player, data.message));
+		const messages: IMessage[] = [...playerGroup].map((player: IPlayer) => this.message(MessageActionEnum.MESSAGE, fromPlayer, player, data.message, player.colour));
 		const setupCompleteCount = playerGroup.reduce((accumulator: number, item: IPlayer) => accumulator + (item.setupComplete ? 1 : 0), 0);
 
 		if (setupCompleteCount > 1) {
-			[...playerGroup].forEach((player: IPlayer) => messages.push(this.message(MessageActionEnum.MESSAGE, player, this.DEFAULT_BOTH_PLAYERS_SETUP_COMPLETE_IN_MESSAGE)));
+			[...playerGroup].forEach((player: IPlayer) => messages.push(this.message(MessageActionEnum.MESSAGE, player, player, this.DEFAULT_BOTH_PLAYERS_SETUP_COMPLETE_IN_MESSAGE, this.DEFAULT_TEXT_COLOUR)));
 			this.setCurrentPlayer(playerGroup, 0);
-			[...playerGroup].forEach((player: IPlayer) => messages.push(this.message(MessageActionEnum.MESSAGE, player, `${ playerGroup[0].name } please select a block`)));
+			[...playerGroup].forEach((player: IPlayer) => messages.push(this.message(MessageActionEnum.MESSAGE, player, player, `${ playerGroup[0].name } please select a block`, this.DEFAULT_TEXT_COLOUR)));
 		}
 
 		return messages;
@@ -147,17 +148,17 @@ export default class BattleShips implements IBattleShips {
 			return [];
 		}
 
-		const player = this.getPlayerFromGroupById(data.id, playerGroup);
+		const fromPlayer = this.getPlayerFromGroupById(data.id, playerGroup);
 
-		if (!player) {
+		if (!fromPlayer) {
 			this.logger.set('Method: handleInput, Player not found when setup is firing');
 			return [];
 		}
-		if (action === MessageActionEnum.FIRE && !player.currentUser) return [];
+		if (action === MessageActionEnum.FIRE && !fromPlayer.currentUser) return [];
 
 		const currentPlayerId = this.getCurrentPlayerId(playerGroup);
 		if (action !== MessageActionEnum.FIRE) this.swapPlayers(playerGroup);
-		return [...playerGroup].map((player: IPlayer) => this.message(action, player, data.message, data.x, data.y, currentPlayerId));
+		return [...playerGroup].map((player: IPlayer) => this.message(action, fromPlayer, player, data.message, fromPlayer.colour, data.x, data.y, currentPlayerId));
 	}
 
 	private handleDestroyed = (data: IMessage): IMessage[] => {
@@ -175,7 +176,7 @@ export default class BattleShips implements IBattleShips {
 
 		[...playerGroup].forEach((player: IPlayer) => player.reset());
 
-		return [...playerGroup].map((player: IPlayer) => this.message(MessageActionEnum.GAME_OVER, player, this.DEFAULT_GAME_OVER_MESSAGE));
+		return [...playerGroup].map((player: IPlayer) => this.message(MessageActionEnum.GAME_OVER, player, player, this.DEFAULT_GAME_OVER_MESSAGE, this.DEFAULT_TEXT_COLOUR));
 	}
 
 	private swapPlayers = (players: IPlayer[]): void => {
@@ -214,7 +215,14 @@ export default class BattleShips implements IBattleShips {
 			return [];
 		}
 
-		return [...playerGroup].map((player: IPlayer) => this.message(MessageActionEnum.MESSAGE, player, data.message));
+		const fromPlayer = this.getPlayerFromGroupById(data.id, playerGroup);
+
+		if (!fromPlayer) {
+			this.logger.set('Method: sendMessage, Player not found to respond');
+			return [];
+		}
+
+		return [...playerGroup].map((player: IPlayer) => this.message(MessageActionEnum.MESSAGE, fromPlayer, player, data.message));
 	}
 
 	private getPlayerGroupById = (id: string): IPlayer[] | null => {
@@ -229,13 +237,14 @@ export default class BattleShips implements IBattleShips {
 
 	private getPlayerFromGroupById = (id: string, group: IPlayer[]) => group.find((player: IPlayer) => player.id === id);
 
-	private message = (action: MessageActionEnum, player: IPlayer, message: string, x?: number, y?: number, currentUser?: string): IMessage => ({
+	private message = (action: MessageActionEnum, fromPlayer: IPlayer, toPlayer: IPlayer, message: string, colour?: string, x?: number, y?: number, currentUser?: string): IMessage => ({
 		dateTime: Date.now(),
 		action,
-		id: player.id,
-		socketId: player.socketId,
-		name: player.name,
+		id: fromPlayer.id,
+		socketId: toPlayer.socketId,
+		name: fromPlayer.name,
 		message,
+		colour: colour || fromPlayer.colour,
 		currentUser,
 		x,
 		y,
