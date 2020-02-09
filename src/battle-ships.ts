@@ -12,7 +12,7 @@ export default class BattleShips implements IBattleShips {
 
 	private readonly DEFAULT_BOTH_PLAYERS_LOGGED_IN_MESSAGE = 'Both players have logged in, please set your boards'
 	private readonly DEFAULT_BOTH_PLAYERS_SETUP_COMPLETE_IN_MESSAGE = 'Both players have now setup their boards'
-	private readonly DEFAULT_GAME_OVER_MESSAGE = 'Game Ove! place your ships to play again';
+	private readonly DEFAULT_GAME_OVER_MESSAGE = 'Game Over! place your ships to play again';
 	private readonly DEFAULT_TEXT_COLOUR = '#000000';
 
 	constructor(props: IBattleShipsProps) {
