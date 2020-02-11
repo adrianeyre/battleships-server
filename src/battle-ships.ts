@@ -17,8 +17,14 @@ export default class BattleShips implements IBattleShips {
 	private readonly DEFAULT_BOTH_PLAYERS_SETUP_COMPLETE_IN_MESSAGE = 'Both players have now setup their boards'
 	private readonly DEFAULT_PLAYERS_DISCONNECTED_MESSAGE = 'Players have disconnected!';
 	private readonly DEFAULT_BASIC_GAME_OVER_MESSAGE = 'Game Over!';
+	private readonly DEFAULT_FIRE_MESSAGE = (name: string, x: number, y: number) => `[${ name }] fire x: ${ x }, y: ${ y }`;
+	private readonly DEFAULT_HIT_MESSAGE = (name: string) => `[${ name }] has been hit!`
+	private readonly DEFAULT_MISS_MESSAGE = (name: string) => `[${ name }] you missed my ships!`
+	private readonly DEFAULT_PLAYER_COMPLETE = (name: string) => `${ name } has finished setting their board up`
 	private readonly DEFAULT_GAME_OVER_MESSAGE = (name: string) => `Game Over! ${ name } is the winner!`;
 	private readonly DEFAULT_START_MESSAGE = (name: string) => `${ name } please select a block`;
+	private readonly DEFAULT_DESTROYED_MESSAGE = (name: string) => `[${ name }] all my ships are sunk! you win!`;
+	private readonly DEFAULT_SUNK_MESSAGE = (name: string, ship: string) => `[${ name }] you have sunk my ${ ship }`;
 	private readonly DEFAULT_TEXT_COLOUR = '#000000';
 
 	constructor(props: IBattleShipsProps) {
@@ -74,7 +80,7 @@ export default class BattleShips implements IBattleShips {
 			case MessageActionEnum.DESTROYED:
 				return this.handleDestroyed(data);
 			case MessageActionEnum.SUNK:
-				return this.sendMessage(data);
+				return this.handleSunk(data);
 			case MessageActionEnum.RESPOND:
 				this.respond(data); break;
 		}
@@ -121,13 +127,14 @@ export default class BattleShips implements IBattleShips {
 
 		groupData.player.hasCompletedSetup();
 
-		const messages: IMessage[] = [...groupData.group].map((player: IPlayer) => this.message(MessageActionEnum.MESSAGE, groupData.player, player, data.message, player.colour));
+		const messages: IMessage[] = [...groupData.group].map((player: IPlayer) => this.message(MessageActionEnum.MESSAGE, groupData.player, player, this.DEFAULT_PLAYER_COMPLETE(get(groupData, 'player.name')), player.colour));
 		const setupCompleteCount = groupData.group.reduce((accumulator: number, item: IPlayer) => accumulator + (item.setupComplete ? 1 : 0), 0);
 
 		if (setupCompleteCount > 1) {
 			[...groupData.group].forEach((player: IPlayer) => messages.push(this.message(MessageActionEnum.MESSAGE, player, player, this.DEFAULT_BOTH_PLAYERS_SETUP_COMPLETE_IN_MESSAGE, this.DEFAULT_TEXT_COLOUR)));
 			this.setCurrentPlayer(groupData.group, 0);
-			[...groupData.group].forEach((player: IPlayer) => messages.push(this.message(MessageActionEnum.MESSAGE, player, player, this.DEFAULT_START_MESSAGE(get(groupData, 'group[0].name')), this.DEFAULT_TEXT_COLOUR)));
+			const currentPlayer = get(groupData, 'group[0]') as IPlayer;
+			groupData.group.forEach((player: IPlayer) => messages.push(this.message(MessageActionEnum.START_GAME, currentPlayer, player, this.DEFAULT_START_MESSAGE(currentPlayer.name), this.DEFAULT_TEXT_COLOUR)));
 		}
 
 		return messages;
@@ -157,7 +164,20 @@ export default class BattleShips implements IBattleShips {
 
 		const currentPlayerId = this.getCurrentPlayerId(groupData.group);
 		if (action !== MessageActionEnum.FIRE) this.swapPlayers(groupData.group);
-		return [...groupData.group].map((player: IPlayer) => this.message(action, groupData.player, player, data.message, get(groupData, 'player.colour'), data.x, data.y, currentPlayerId));
+
+		let message: string = '';
+		const currentPlayer = get(groupData, 'player') as IPlayer;
+
+		switch (data.action) {
+			case MessageActionEnum.FIRE:
+				message = this.DEFAULT_FIRE_MESSAGE(currentPlayer.name, data.x || -1, data.y || -1); break;
+			case MessageActionEnum.HIT:
+				message = this.DEFAULT_HIT_MESSAGE(currentPlayer.name); break
+			case MessageActionEnum.MISS:
+				message = this.DEFAULT_MISS_MESSAGE(currentPlayer.name); break
+		}
+
+		return [...groupData.group].map((player: IPlayer) => this.message(action, groupData.player, player, message, currentPlayer.colour, data.x, data.y, currentPlayerId));
 	}
 
 	private handleDestroyed = (data: IMessage): IMessage[] => {
@@ -166,9 +186,12 @@ export default class BattleShips implements IBattleShips {
 
 		const winner = [...groupData.group].find((player: IPlayer) => player.id !== data.id);
 		const message = winner && winner.name ? this.DEFAULT_GAME_OVER_MESSAGE(winner.name) : this.DEFAULT_BASIC_GAME_OVER_MESSAGE;
-
+		
 		[...groupData.group].forEach((player: IPlayer) => player.reset());
-		return [...groupData.group].map((player: IPlayer) => this.message(MessageActionEnum.GAME_OVER, player, player, message, this.DEFAULT_TEXT_COLOUR));
+		const messages: IMessage[] = [...groupData.group].map((player: IPlayer) => this.message(MessageActionEnum.MESSAGE, player, player, this.DEFAULT_DESTROYED_MESSAGE(get(groupData, 'player.name')), this.DEFAULT_TEXT_COLOUR));
+		[...groupData.group].forEach((player: IPlayer) => messages.push(this.message(MessageActionEnum.GAME_OVER, winner, player, message, winner?.colour)));
+
+		return messages;
 	}
 
 	private swapPlayers = (players: IPlayer[]): void => {
@@ -197,6 +220,14 @@ export default class BattleShips implements IBattleShips {
 		});
 
 		return id;
+	}
+
+	private handleSunk = (data: IMessage): IMessage[] => {
+		const groupData = this.getGroupAndPlayer(data);
+		if (!groupData || !groupData.group || !groupData.player) return [];
+
+		const currentPlayer = get(groupData, 'player') as IPlayer;
+		return [...groupData.group].map((player: IPlayer) => this.message(data.action, groupData.player, player, this.DEFAULT_SUNK_MESSAGE(currentPlayer.name, data.ship || '')));
 	}
 
 	private sendMessage = (data: IMessage): IMessage[] => {

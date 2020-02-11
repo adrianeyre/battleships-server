@@ -11,4 +11,5 @@ export default interface IMessage {
 	currentUser?: string;
 	x?: number;
 	y?: number;
+	ship?: string;
 }
