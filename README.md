@@ -23,5 +23,10 @@ PORT=4000
 API_KEY=key
 ```
 
+## <a name="Shots">Screen Shots</a>
+[![Screenshot](https://raw.githubusercontent.com/adrianeyre/battle-ships/master/src/images/screenshot1.png)](https://raw.githubusercontent.com/adrianeyre/battle-ships/master/src/images/screenshot1.png "Game View")
+
+[![Screenshot](https://raw.githubusercontent.com/adrianeyre/battle-ships/master/src/images/screenshot2.png)](https://raw.githubusercontent.com/adrianeyre/battle-ships/master/src/images/screenshot2.png "Game View")
+
 ## <a name="Play">Play Battle Ships</a>
 * [Battle Ships](http://adrianeyre.co.uk/battle-ships)
