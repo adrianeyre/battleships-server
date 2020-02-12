@@ -31,7 +31,7 @@ export default class BattleShips implements IBattleShips {
 		this.players = [];
 		this.logger = props.logger;
 
-		this.logger.set('Application started');
+		this.logger.set('battle-ships initiated');
 	}
 
 	public checkIn = (): IMessage[] => {
@@ -50,15 +50,7 @@ export default class BattleShips implements IBattleShips {
 			})
 		})
 
-		disconnectedGroups.forEach((group: IPlayer[]) => {
-			const index = this.players.indexOf(group);
-			if (index < 0) {
-				this.logger.set('Could not find group to remove');
-				return;
-			}
-
-			this.players.splice(index, 1);
-		})
+		this.removeGroups(disconnectedGroups);
 
 		return messages
 	}
@@ -89,6 +81,18 @@ export default class BattleShips implements IBattleShips {
 	}
 
 	public getPlayers = (): IPlayer[][] => this.players;
+
+	private removeGroups = (groups: IPlayer[][]): void => {
+		groups.forEach((group: IPlayer[]) => {
+			const index = this.players.indexOf(group);
+			if (index < 0) {
+				this.logger.set('Could not find group to remove');
+				return;
+			}
+
+			this.players.splice(index, 1);
+		})
+	}
 
 	private logOutGroup = (playerGroup: IPlayer[], messages: IMessage[]): void => {
 		playerGroup.forEach((player: IPlayer) => messages.push(this.message(MessageActionEnum.LOGOUT, player, player, this.DEFAULT_PLAYERS_DISCONNECTED_MESSAGE, this.DEFAULT_TEXT_COLOUR)));

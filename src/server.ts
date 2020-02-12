@@ -42,21 +42,20 @@ export default class Server implements IServer {
 	private listen(): void {
 		try {
 			this.server.listen(this.port, () => {
-				console.log(`Server running on port ${ this.port }`);
+				this.logger.set(`Server running on port ${ this.port }`);
 			});
 	
 			this.io.on('connect', (socket: any) => {
-				console.log(`Connected client on port ${ this.port }`);
+				this.logger.set(`Connected client on port ${ this.port }`);
 	
 				socket.on('battle-ships-data', (data: IMessage) => {
-					const socketId = socket.id;
-					const messages = this.battleShips.handle({ ...data, socketId: socketId });
+					const messages = this.battleShips.handle({ ...data, socketId: socket.id });
 	
 					messages.forEach((message: IMessage) => this.io.to(message.socketId).emit('battle-ships-data', message));
 				});
 	
 				socket.on('disconnect', () => {
-					console.log('Client disconnected');
+					this.logger.set('Client disconnected');
 				});
 			});
 		} catch (err) {

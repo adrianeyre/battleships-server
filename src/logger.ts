@@ -11,7 +11,7 @@ export default class Logger implements ILogger {
 	}
 
 	public set = (message: string) => {
-		this.logs.unshift(`[${ moment().format("DD/MM/YYY HH:mm:ss") }] ${ message } `);
+		this.logs.unshift(`[${ moment().format("DD/MM/YYY HH:mm:ss") }] ${ message }`);
 
 		if (this.logs.length > this.maxSize) this.logs.pop();
 	}
