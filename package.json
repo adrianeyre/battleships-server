@@ -51,6 +51,7 @@
 		"ts-jest": "^25.5.1",
 		"ts-node": "^8.10.2",
 		"typescript": "^3.9.7",
+		"xmlhttprequest-ssl": "^1.6.2",
 		"yargs-parser": "^20.2.4"
 	}
 }
