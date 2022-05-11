@@ -21,6 +21,7 @@ $ npm start
 ```
 PORT=4000
 API_KEY=key
+ORIGIN=http://localhost:3000
 ```
 
 ## <a name="Shots">Screen Shots</a>

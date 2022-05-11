@@ -1,7 +1,7 @@
 import { createServer, Server as HttpServer } from 'http';
 import * as express from 'express';
-import * as socketIo from 'socket.io';
-import * as dotenv from "dotenv";
+import { Server as SocketServer } from 'socket.io';
+import * as dotenv from 'dotenv';
 
 import IServer from './interfaces/server';
 import IMessage from './interfaces/message';
@@ -18,7 +18,7 @@ export default class Server implements IServer {
 
 	private app: express.Application;
 	private server: HttpServer;
-	private io: SocketIO.Server;
+	private io: SocketServer;
 	private port: string | number;
 	private battleShips: IBattleShips;
 	private routes: IRoute;
@@ -30,7 +30,12 @@ export default class Server implements IServer {
 		this.app = express();
 		this.port = process.env.PORT || this.PORT;
 		this.server = createServer(this.app);
-		this.io = socketIo(this.server);
+		this.io = new SocketServer(this.server, {
+			cors: {
+				origin: process.env.ORIGIN,
+				methods: ["GET", "POST"]
+			}
+		});
 		this.logger = new Logger();
 		this.battleShips = new BattleShips({ logger: this.logger });
 		this.routes = new Routes({ app: this.app, battleShips: this.battleShips, logger: this.logger });
@@ -58,7 +63,7 @@ export default class Server implements IServer {
 					this.logger.set('Client disconnected');
 				});
 			});
-		} catch (err) {
+		} catch (err: any) {
 			this.logger.set(err.message);
 		}
 	}
