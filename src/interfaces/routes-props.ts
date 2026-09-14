@@ -1,9 +1,9 @@
-import * as express from 'express';
+import { Application } from 'express';
 import IBattleShips from './battle-ships';
 import ILogger from './logger';
 
 export default interface IRoutesProps {
-	app: express.Application;
+	app: Application;
 	battleShips: IBattleShips;
 	logger: ILogger
 }

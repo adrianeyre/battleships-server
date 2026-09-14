@@ -130,8 +130,9 @@ export default class BattleShips implements IBattleShips {
 		if (!groupData || !groupData.group || !groupData.player) return [];
 
 		groupData.player.hasCompletedSetup();
+		const playerName = groupData.player.name;
 
-		const messages: IMessage[] = [...groupData.group].map((player: IPlayer) => this.message(MessageActionEnum.MESSAGE, groupData.player, player, this.DEFAULT_PLAYER_COMPLETE(get(groupData, 'player.name')), player.colour));
+		const messages: IMessage[] = [...groupData.group].map((player: IPlayer) => this.message(MessageActionEnum.MESSAGE, groupData.player, player, this.DEFAULT_PLAYER_COMPLETE(playerName), player.colour));
 		const setupCompleteCount = groupData.group.reduce((accumulator: number, item: IPlayer) => accumulator + (item.setupComplete ? 1 : 0), 0);
 
 		if (setupCompleteCount > 1) {
@@ -191,8 +192,9 @@ export default class BattleShips implements IBattleShips {
 		const winner = [...groupData.group].find((player: IPlayer) => player.id !== data.id);
 		const message = winner && winner.name ? this.DEFAULT_GAME_OVER_MESSAGE(winner.name) : this.DEFAULT_BASIC_GAME_OVER_MESSAGE;
 		
+		const playerName = groupData.player.name;
 		[...groupData.group].forEach((player: IPlayer) => player.reset());
-		const messages: IMessage[] = [...groupData.group].map((player: IPlayer) => this.message(MessageActionEnum.MESSAGE, player, player, this.DEFAULT_DESTROYED_MESSAGE(get(groupData, 'player.name')), this.DEFAULT_TEXT_COLOUR));
+		const messages: IMessage[] = [...groupData.group].map((player: IPlayer) => this.message(MessageActionEnum.MESSAGE, player, player, this.DEFAULT_DESTROYED_MESSAGE(playerName), this.DEFAULT_TEXT_COLOUR));
 		[...groupData.group].forEach((player: IPlayer) => messages.push(this.message(MessageActionEnum.GAME_OVER, winner, player, message, winner?.colour)));
 
 		return messages;
