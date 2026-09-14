@@ -1,5 +1,5 @@
-import * as express from 'express';
-import * as dotenv from "dotenv";
+import { Application } from 'express';
+import dotenv from "dotenv";
 
 import IRoutes from './interfaces/routes';
 import IRoutesProps from './interfaces/routes-props'
@@ -7,7 +7,7 @@ import IBattleShips from './interfaces/battle-ships';
 import ILogger from './interfaces/logger';
 
 export default class Routes implements IRoutes {
-	private app: express.Application;
+	private app: Application;
 	private battleShips: IBattleShips;
 	private logger: ILogger;
 	private apiKey: string;

@@ -1,7 +1,7 @@
 import { createServer, Server as HttpServer } from 'http';
-import * as express from 'express';
+import express, { Application } from 'express';
 import { Server as SocketServer } from 'socket.io';
-import * as dotenv from 'dotenv';
+import dotenv from 'dotenv';
 
 import IServer from './interfaces/server';
 import IMessage from './interfaces/message';
@@ -16,7 +16,7 @@ export default class Server implements IServer {
 	private readonly PORT: number = 4000;
 	private readonly timerInterval: number = 20000;
 
-	private app: express.Application;
+	private app: Application;
 	private server: HttpServer;
 	private io: SocketServer;
 	private port: string | number;
